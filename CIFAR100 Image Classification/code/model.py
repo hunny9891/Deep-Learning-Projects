@@ -1,51 +1,61 @@
+# %%
 # Import libraries to be used
-import math
-import pickle
-
-import matplotlib.pyplot as plt
 import numpy as np
-import scipy
 import tensorflow as tf
-from scipy import ndimage
+import math
 from tensorflow.python.framework import ops
+import pickle
+import matplotlib.pyplot as plt
+
+get_ipython().run_line_magic('matplotlib', 'inline')
 
 
+# %%
+# Helper function to load train, test and metadata files.
 def unpickle(file):
     with open(file, 'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
     return dict
 
 
-def load_data(data_path):
-    raw_data = unpickle(data_path + '/train')
-    meta_data = unpickle(data_path + '/meta')
-    test_data = unpickle(data_path + '/test')
-    print('Test Data Keys:' + str(test_data.keys()))
+rawData = unpickle(
+    'C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/CIFAR100 Image Classification/dataset/cifar-100-python/train')
+metaData = unpickle(
+    'C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/CIFAR100 Image Classification/dataset/cifar-100-python/meta')
+testData = unpickle(
+    'C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/CIFAR100 Image Classification/dataset/cifar-100-python/test')
 
-    return raw_data, meta_data, test_data
+print('Test Data Keys:' + str(testData.keys()))
+# %%
+imgshow = plt.imshow(rawData[b'data'][10].reshape(32, 32, 3))
 
+# %%
+# Prepare data to feed into the network and train.
+X_train_orig = rawData[b'data']
+Y_train_orig = rawData[b'coarse_labels']
+X_test_orig = testData[b'data']
+Y_test_orig = testData[b'coarse_labels']
 
-def prep_data_for_train(raw_data, test_data):
-    # Prepare data to feed into the network and train.
-    X_train_orig = raw_data[b'data']
-    Y_train = raw_data[b'coarse_labels']
-    X_test_orig = test_data[b'data']
-    Y_test = test_data[b'coarse_labels']
+# %%
+# Know the dimension of data
+print('Shape of training data: ' + str(X_train_orig.shape))
+print('Shape of training labels: ' + str(len(Y_train_orig)))
+print('Shape of test data: ' + str(X_test_orig.shape))
+print('Shape of test labels: ' + str(len(Y_test_orig)))
 
-    # Know the dimension of data
-    print('Shape of training data: ' + str(X_train_orig.shape))
-    print('Shape of training labels: ' + str(len(Y_train)))
-    print('Shape of test data: ' + str(X_test_orig.shape))
-    print('Shape of test labels: ' + str(len(Y_test)))
+# %%
+# Normalize the training and testing data.
+X_train = X_train_orig / 255
+X_test = X_test_orig / 255
 
-    # Normalize the training and testing data.
-    X_train = X_train_orig / 255
-    X_test = X_test_orig / 255
+print('Normalized training vector sample: ' + str(X_train[1]))
+print('Normalized testing vector sample: ' + str(X_test[1]))
 
-    print('Normalized training vector sample: ' + str(X_train[1]))
-    print('Normalized testing vector sample: ' + str(X_test[1]))
-
-    return X_train, X_test, Y_train, Y_test
+# %%
+'''
+Below cell consists of all the helper functions to initialize the neural network model
+and train it.
+'''
 
 
 def create_one_hot(labels, C):
@@ -66,29 +76,17 @@ def create_placeholders(n_x, n_y):
 
 
 def initialize_parameters():
-    W1 = tf.get_variable(name='W1', shape=[1000, 3072],
+    W1 = tf.get_variable(name='W1', shape=[100, 3072],
                          initializer=tf.contrib.layers.xavier_initializer(seed=1))
-    b1 = tf.get_variable(name='b1', shape=[1000, 1],
+    b1 = tf.get_variable(name='b1', shape=[100, 1],
                          initializer=tf.zeros_initializer())
-    W2 = tf.get_variable(name='W2', shape=[500, 1000],
+    W2 = tf.get_variable(name='W2', shape=[50, 100],
                          initializer=tf.contrib.layers.xavier_initializer(seed=1))
-    b2 = tf.get_variable(name='b2', shape=[500, 1],
+    b2 = tf.get_variable(name='b2', shape=[50, 1],
                          initializer=tf.zeros_initializer())
-    W3 = tf.get_variable(name='W3', shape=[200, 500],
+    W3 = tf.get_variable(name='W3', shape=[20, 50],
                          initializer=tf.contrib.layers.xavier_initializer(seed=1))
-    b3 = tf.get_variable(name='b3', shape=[200, 1],
-                         initializer=tf.zeros_initializer())
-    W4 = tf.get_variable(name='W4', shape=[100, 200],
-                         initializer=tf.contrib.layers.xavier_initializer(seed=1))
-    b4 = tf.get_variable(name='b4', shape=[100, 1],
-                         initializer=tf.zeros_initializer())
-    W5 = tf.get_variable(name='W5', shape=[50, 100],
-                         initializer=tf.contrib.layers.xavier_initializer(seed=1))
-    b5 = tf.get_variable(name='b5', shape=[50, 1],
-                         initializer=tf.zeros_initializer())
-    W6 = tf.get_variable(name='W6', shape=[20, 50],
-                         initializer=tf.contrib.layers.xavier_initializer(seed=1))
-    b6 = tf.get_variable(name='b6', shape=[20, 1],
+    b3 = tf.get_variable(name='b3', shape=[20, 1],
                          initializer=tf.zeros_initializer())
 
     parameters = {
@@ -97,14 +95,7 @@ def initialize_parameters():
         'W2': W2,
         'b2': b2,
         'W3': W3,
-        'b3': b3,
-        'W4': W4,
-        'b4': b4,
-        'W5': W5,
-        'b5': b5,
-        'W6': W6,
-        'b6': b6
-
+        'b3': b3
     }
 
     return parameters
@@ -117,29 +108,18 @@ def forward_propagation(X, parameters):
     b2 = parameters['b2']
     W3 = parameters['W3']
     b3 = parameters['b3']
-    W4 = parameters['W4']
-    b4 = parameters['b4']
-    W5 = parameters['W5']
-    b5 = parameters['b5']
-    W6 = parameters['W6']
-    b6 = parameters['b6']
 
     Z1 = tf.add(tf.matmul(W1, X), b1)
     A1 = tf.nn.relu(Z1)
     Z2 = tf.add(tf.matmul(W2, A1), b2)
     A2 = tf.nn.relu(Z2)
     Z3 = tf.add(tf.matmul(W3, A2), b3)
-    A3 = tf.nn.relu(Z3)
-    Z4 = tf.add(tf.matmul(W4, A3), b4)
-    A4 = tf.nn.relu(Z4)
-    Z5 = tf.add(tf.matmul(W5, A4), b5)
-    A5 = tf.nn.relu(Z5)
-    Z6 = tf.add(tf.matmul(W6, A5), b6)
-    return Z6
+
+    return Z3
 
 
-def compute_cost(Z6, Y):
-    logits = tf.transpose(Z6)
+def compute_cost(Z3, Y):
+    logits = tf.transpose(Z3)
     labels = tf.transpose(Y)
 
     cost = tf.reduce_mean(tf.losses.sigmoid_cross_entropy(logits=logits,
@@ -148,7 +128,7 @@ def compute_cost(Z6, Y):
     return cost
 
 
-def random_mini_batches(X, Y, mini_batch_size=8192*64, seed=0):
+def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
     """
     Creates a list of random minibatches from (X, Y)
 
@@ -204,16 +184,16 @@ def model(X_train, Y_train, X_test, Y_test, starter_learning_rate, num_epochs, m
     parameters = initialize_parameters()
 
     # Forward Propagation
-    Z6 = forward_propagation(X, parameters)
+    Z5 = forward_propagation(X, parameters)
 
     # Compute Cost
-    cost = compute_cost(Z6, Y)
+    cost = compute_cost(Z5, Y)
 
-    # BackPropagation: Using tensorflow Gradient Descent OptimizerL
+    # BackPropagation: Using tensorflow Gradient Descent Optimizer
     global_step = tf.Variable(0, trainable=False)
     learning_rate = tf.train.exponential_decay(starter_learning_rate, global_step,
                                                100000, 0.96, staircase=True)
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
+    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
     # Initialize all the variables
     init = tf.global_variables_initializer()
@@ -225,8 +205,8 @@ def model(X_train, Y_train, X_test, Y_test, starter_learning_rate, num_epochs, m
 
         # Do the training loop
         for epoch in range(num_epochs):
-            print('epoch %i' % epoch)
             epoch_cost = 0
+            num_minibatches = (int)(m / minibatch_size)
             minibatches = random_mini_batches(X_train, Y_train, minibatch_size, 0)
 
             for minibatch in minibatches:
@@ -255,17 +235,32 @@ def model(X_train, Y_train, X_test, Y_test, starter_learning_rate, num_epochs, m
         print("Parameters have been trained")
 
         # Calculate correct prediction
-        correct_prediction = tf.equal(tf.argmax(Z6), tf.argmax(Y))
+        correct_prediction = tf.equal(tf.argmax(Z5), tf.argmax(Y))
 
         # Accuracy on test set
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
-        print("Train Accuracy:", accuracy.eval({X: X_train, Y: Y_train}) * 100)
-        print("Test Accuracy:", accuracy.eval({X: X_test, Y: Y_test}) * 100)
+        print("Train Accuracy:", accuracy.eval({X: X_train, Y: Y_train}))
+        print("Test Accuracy:", accuracy.eval({X: X_test, Y: Y_test}))
 
     return learned_parameters
 
 
+# %%
+# Convert training and testing labels into one hot vector.
+Y_train = create_one_hot(Y_train_orig, 20)
+Y_test = create_one_hot(Y_test_orig, 20)
+
+# %%
+print(str(Y_train.shape))
+print(str(Y_test.shape))
+
+# %%
+# Train the model.
+learned_parameters = model(X_train.T, Y_train, X_test.T, Y_test, 0.0001, 10, 16, True)
+
+
+# %%
 def predict(X, parameters):
     W1 = tf.convert_to_tensor(parameters["W1"])
     b1 = tf.convert_to_tensor(parameters["b1"])
@@ -273,15 +268,13 @@ def predict(X, parameters):
     b2 = tf.convert_to_tensor(parameters["b2"])
     W3 = tf.convert_to_tensor(parameters["W3"])
     b3 = tf.convert_to_tensor(parameters["b3"])
-    W4 = tf.convert_to_tensor(parameters["W4"])
-    W5 = tf.convert_to_tensor(parameters["W5"])
-    b5 = tf.convert_to_tensor(parameters["b5"])
-    W6 = tf.convert_to_tensor(parameters["W6"])
-    b6 = tf.convert_to_tensor(parameters["b6"])
+    # W4 = tf.convert_to_tensor(parameters["W4"])
+    # W5 = tf.convert_to_tensor(parameters["W5"])
+    # b5 = tf.convert_to_tensor(parameters["b5"])
 
     x = tf.placeholder("float", [3072, 1])
-    Z = forward_propagation(x, parameters)
-    p = tf.argmax(Z)
+    Z5 = forward_propagation(x, parameters)
+    p = tf.argmax(Z5)
 
     with tf.Session() as sess:
         prediction = sess.run(p, feed_dict={x: X})
@@ -289,30 +282,20 @@ def predict(X, parameters):
     return prediction
 
 
-def main():
-    data_path = 'D:/Deep-Learning-Projects/data'
-    raw_data, meta_data, test_data = load_data(data_path)
-    X_train, X_test, y_train, y_test = prep_data_for_train(raw_data, test_data)
-    Y_train = create_one_hot(y_train, 20)
-    Y_test = create_one_hot(y_test, 20)
+# %%
+import scipy
+from PIL import Image
+from scipy import ndimage
 
-    print(str(Y_train.shape))
-    print(str(Y_test.shape))
+my_image = '00000015_029.jpg'
 
-    learned_parameters = model(X_train.T, Y_train, X_test.T, Y_test, starter_learning_rate=0.5, num_epochs=100,
-                               minibatch_size=8192, print_cost=True)
+fname = "Binary Classification/images/" + my_image
+image = np.array(ndimage.imread(fname, flatten=False))
+my_image = scipy.misc.imresize(image, size=(32, 32)).reshape((1, 32 * 32 * 3)).T
+my_image_prediction = predict(my_image, parameters)
 
-    my_image = 'mushrooms.jpg'
+plt.imshow(image)
+print("Your algorithm predicts: y = " + str(np.squeeze(my_image_prediction)))
 
-    fname = "D:/Deep-Learning-Projects/data/" + my_image
-    image = np.array(ndimage.imread(fname, flatten=False))
-    my_image = scipy.misc.imresize(image, size=(32, 32)).reshape((1, 32 * 32 * 3)).T
-    my_image_prediction = predict(my_image, learned_parameters)
-
-    plt.imshow(image)
-    print("Your algorithm predicts: y = " + str(np.squeeze(my_image_prediction)))
-    print(str(meta_data[b'coarse_label_names'][8]))
-
-
-if __name__ == "__main__":
-    main()
+# %%
+print(str(metaData[b'coarse_label_names'][8]))
