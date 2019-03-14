@@ -1,7 +1,9 @@
 # Import necessary libraries
 import pandas as pd
 from sklearn import model_selection
-from model import Model
+from model import TitanicModel
+from tensorflow import keras
+from keras.utils import to_categorical
 
 def load_and_prep_data(data_path, isTrainingSet):
 
@@ -71,7 +73,7 @@ def split_training_data(X, Y):
     return X_train, X_test, Y_train, Y_test
 
 def main():
-    relPath = 'Titanic - Machine Learning from Disaster/dataset'
+    relPath = 'C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/Titanic - Machine Learning from Disaster/dataset'
     trainDataPath = relPath + '/train.csv'
     testDataPath = relPath + '/test.csv'
     
@@ -83,10 +85,10 @@ def main():
     #Split the train data into train and test data for your cross validation
     X_train, X_test, Y_train, Y_test = split_training_data(X,Y)
 
-    model = Model()
+    model = TitanicModel()
     # Convert Y to one hot labels
-    Y_train = model.create_one_hot(Y_train, 2)
-    Y_test = model.create_one_hot(Y_test, 2)
+    Y_train = to_categorical(Y_train)
+    Y_test = to_categorical(Y_test)
 
     # Convert dataframe to numpy array
     X_train = X_train.values
@@ -106,8 +108,8 @@ def main():
     X_unseen_test = X_unseen_test.values
     
     # Train the model
-    # trained_model = model.train_with_keras_model(X_train, Y_train, X_test, Y_test, 300, 512,0.003)
-    trained_model = model.train_params(X_train.T, Y_train, X_test.T, Y_test, 0.003, 300, 512, True)
+    trained_model = model.train_with_keras_model(X_train, Y_train, X_test, Y_test, 100, 512)
+    #trained_model = model.train_params(X_train.T, Y_train, X_test.T, Y_test, 0.003, 300, 512, True)
    
     # Evaluation on test data
     #pred = trained_model.predict(X_unseen_test)

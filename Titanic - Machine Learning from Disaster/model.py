@@ -7,8 +7,10 @@ from tensorflow.python.framework import ops
 import math
 
 from tensorflow import keras
+from keras.layers import Input, Dense, Activation
+from keras.models import Model
 
-class Model:
+class TitanicModel:
     def __init__(self):
         self.data = []
 
@@ -206,20 +208,22 @@ class Model:
 
     def train_with_keras_model(self, X_train, Y_train, X_test, Y_test, num_epoch, batch_size, lr=0.0001):
         m,n_x = X_train.shape
-        model = keras.Sequential([
-            keras.layers.Dense(input_shape=(n_x,), units=128, activation=tf.nn.relu, kernel_initializer="glorot_normal"),
-            keras.layers.Dense(input_shape=(n_x,), units=64, activation=tf.nn.relu,kernel_initializer="glorot_normal"),
-            keras.layers.Dense(input_shape=(n_x,), units=64, activation=tf.nn.relu,kernel_initializer="glorot_normal"),
-            keras.layers.Dense(input_shape=(n_x,), units=64, activation=tf.nn.relu,kernel_initializer="glorot_normal"),
-            keras.layers.Dense(input_shape=(n_x,), units=64, activation=tf.nn.relu,kernel_initializer="glorot_normal"),
-            keras.layers.Dense(units=1, activation=tf.nn.softmax),
-        ])
 
-        rmsprop = keras.optimizers.RMSprop(lr=lr)
-        adam = keras.optimizers.Adam(lr=lr)
+        X_Input = Input(shape=(n_x,), name='Input')
+        X = Dense(128, name='h1')(X_Input)
+        X = Activation('relu')(X)
+        X = Dense(256, name='h2')(X)
+        X = Activation('relu')(X)
+        X = Dense(512, name='h3')(X)
+        X = Activation('relu')(X)
+        X = Dense(1024, name='h4')(X)
+        X = Activation('relu')(X)
+        X = Dense(2, activation='softmax', name='output')(X)
 
-        model.compile(optimizer=adam,
-            loss='binary_crossentropy', 
+        model = Model(inputs=X_Input, outputs=X)
+
+        model.compile(optimizer='adam',
+            loss='categorical_crossentropy', 
             metrics=['accuracy'])
        
         model.fit(X_train, Y_train, epochs=num_epoch, batch_size=batch_size)

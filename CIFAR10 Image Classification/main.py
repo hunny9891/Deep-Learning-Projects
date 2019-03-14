@@ -2,7 +2,7 @@
 import numpy as np
 from tensorflow import keras
 from keras.utils import to_categorical
-from keras.datasets import cifar100
+from keras.datasets import cifar10
 import scipy
 import pickle
 
@@ -11,42 +11,10 @@ from resnet50 import CustomModel
 import matplotlib.pyplot as plt
 
 # Constants
-ROOT_DIR = 'C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/CIFAR100 Image Classification/'
-
-
-def unpickle(file):
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
-    return dict
-
-
-def load_data(data_path):
-    raw_data = unpickle(data_path + '/train')
-    meta_data = unpickle(data_path + '/meta')
-    test_data = unpickle(data_path + '/test')
-    print('Test Data Keys:' + str(test_data.keys()))
-
-    return raw_data, meta_data, test_data
-
-
-def prep_data_for_train(raw_data, test_data):
-    # Prepare data to feed into the network and train.
-    X_train_orig = raw_data[b'data']
-    Y_train = raw_data[b'coarse_labels']
-    X_test_orig = test_data[b'data']
-    Y_test = test_data[b'coarse_labels']
-
-    # Normalize the training and testing data.
-    X_train = X_train_orig / 255
-    X_test = X_test_orig / 255
-
-    print('Normalized training vector sample: ' + str(X_train[1]))
-    print('Normalized testing vector sample: ' + str(X_test[1]))
-
-    return X_train, X_test, Y_train, Y_test
+ROOT_DIR = 'C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/CIFAR10 Image Classification'
 
 def load_data_from_keras():
-    (X_train, Y_train), (X_test, Y_test) = cifar100.load_data(label_mode='coarse')
+    (X_train, Y_train), (X_test, Y_test) = cifar10.load_data()
 
     # Normalize the training and testing data.
     X_train = X_train / 255
@@ -75,10 +43,10 @@ def main():
     print('Shape of test labels: ' + str(y_test.shape))
 
     model = CustomModel()
-    trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, 90, 64)
+    trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, 200, 128)
 
     # Save the trained model
-    trained_model.save(ROOT_DIR + 'models/custom_resnet50.h5')
+    trained_model.save(ROOT_DIR + '/models/custom_resnet50.h5')
 
     #my_image = 'mushrooms.jpg'
 

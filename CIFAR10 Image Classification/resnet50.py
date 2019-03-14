@@ -107,7 +107,7 @@ class CustomModel:
 
         return X
 
-    def Resnet50(self,input_shape=(32,32,3), classes=20):
+    def Resnet50(self,input_shape=(32,32,3), classes=10):
         """
         Implementation of the popular ResNet50 the following architecture:
         CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3
@@ -182,35 +182,7 @@ class CustomModel:
         print("Accuracy on the test set: " + str(test_loss * 100) + "%")
 
         return model
-
-    def transfer_learn_resnet50(self, X_train, Y_train, X_test, Y_test, num_epochs, batch_size):
-        # Load the model 
-        resnet = ResNet50(include_top=True, weights='imagenet')
-       
-        X = resnet.output
-        #X = GlobalAveragePooling2D()(X)
-        X = Dense(512, activation='relu', name='fc-1')(X)
-        X = Dropout(0.5)(X)
-        X = Dense(256, activation='relu', name='fc-2')(X)
-        X = Dropout(0.5)(X)
-        out = Dense(20, activation='softmax', name='output')(X)
-
-        model = keras.models.Model(inputs=resnet.input, outputs=out)
-        print(model.summary())
-
-        # Switch off first layer
-        for layer in model.layers[:-6]:
-            layer.trainable = False
-
-        # Switch off trainable for layers not to be trained
-        model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
-        model.fit(X_train, Y_train, epochs=num_epochs, batch_size=batch_size)
-
-        _, test_accuracy = X.evaluate(X_test, Y_test)
-        print("Test Accuracy: " + str(test_accuracy))
-
-        return model
-
+    
     def predict_with_resnet50(self, image_path, model):
         # Preprocess the image
         img = image.load_img(image_path, target_size=(224, 224))
