@@ -3,15 +3,18 @@ import numpy as np
 from tensorflow import keras
 from keras.utils import to_categorical
 from keras.datasets import cifar10
+from keras.models import load_model
+
 import scipy
 import pickle
+import os
 
 from scipy import ndimage
 from resnet50 import CustomModel
 import matplotlib.pyplot as plt
 
 # Constants
-ROOT_DIR = 'C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/CIFAR10 Image Classification'
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 def load_data_from_keras():
     (X_train, Y_train), (X_test, Y_test) = cifar10.load_data()
@@ -23,6 +26,20 @@ def load_data_from_keras():
     return X_train, Y_train, X_test, Y_test
 
 def main():
+
+    # Make user enter the epoch size
+    num_epochs = 1
+    while True:
+        try:
+            num_epochs = input("Please enter number of epochs: ")
+            if int(num_epochs) <= 0:
+                print("Number should be greater than 0.")
+            else:
+                break
+        except ValueError:
+            print("You must enter a valid integer.")
+    
+    num_epochs = int(num_epochs)
 
     #data_path = ROOT_DIR + 'dataset/cifar-100-python'
     #raw_data, meta_data, test_data = load_data(data_path)
@@ -42,11 +59,37 @@ def main():
     print('Shape of training labels: ' + str(y_train.shape))
     print('Shape of test labels: ' + str(y_test.shape))
 
-    model = CustomModel()
-    trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, 200, 128)
+    model_path = ROOT_DIR + '/models'
+    model_file = 'resnet50.h5'
+    # Test whether the directory exists
+    if not os.path.isdir(model_path):
+        print("Directory: " + model_path + " not found. Creating directory structure.")
+        os.makedirs(model_path)
+
+    # Try loading the keras model, if not present in the directory specified then train and save from start
+    # else train on loaded model.
+    isModelPresent = False
+    try:
+        trained_model = load_model(model_path + "/" + model_file)
+    except OSError as e:
+        print('Model not found on the specified path.', e)
+    else:
+        isModelPresent = True
+
+    if isModelPresent:
+        print("Saved model has been loaded successfully.")
+        trained_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        trained_model.fit(X_train, y_train, epochs=num_epochs,batch_size=64)
+
+        test_loss, test_accuracy = trained_model.evaluate(X_test, y_test)
+        print("Accuracy on the test set: " + str(test_loss * 100) + "%")
+    else:
+        print("No saved model found, creating a new model and training it.This model will be saved for further uses.")
+        model = CustomModel()
+        trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 64)
 
     # Save the trained model
-    trained_model.save(ROOT_DIR + '/models/custom_resnet50.h5')
+    trained_model.save(model_path + "/" + model_file)
 
     #my_image = 'mushrooms.jpg'
 
