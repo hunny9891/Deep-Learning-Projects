@@ -1,6 +1,6 @@
 
 import numpy as np
-from tensorflow import keras
+#from tensorflow import keras
 from keras.utils import to_categorical
 from keras.datasets import cifar10
 from keras.models import load_model
@@ -12,6 +12,7 @@ import os
 from scipy import ndimage
 from resnet50 import CustomModel
 import matplotlib.pyplot as plt
+
 
 # Constants
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -60,7 +61,7 @@ def main():
     print('Shape of test labels: ' + str(y_test.shape))
 
     model_path = ROOT_DIR + '/models'
-    model_file = 'resnet50.h5'
+    model_file = 'custom_resnet50.h5'
     # Test whether the directory exists
     if not os.path.isdir(model_path):
         print("Directory: " + model_path + " not found. Creating directory structure.")
@@ -91,15 +92,5 @@ def main():
     # Save the trained model
     trained_model.save(model_path + "/" + model_file)
 
-    #my_image = 'mushrooms.jpg'
-
-    #fname = "CIFAR100 Image Classification/data/" + my_image
-    #image = np.array(ndimage.imread(fname, flatten=False)) 
-    #my_image = scipy.misc.imresize(image, size=(32, 32))
-
-    
-
-    #plt.imshow(image)
-    
 if __name__ == "__main__":
     main()
