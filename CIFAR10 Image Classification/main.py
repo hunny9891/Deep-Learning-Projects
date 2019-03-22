@@ -83,7 +83,7 @@ def main():
         trained_model.fit(X_train, y_train, epochs=num_epochs,batch_size=64)
 
         test_loss, test_accuracy = trained_model.evaluate(X_test, y_test)
-        print("Accuracy on the test set: " + str(test_loss * 100) + "%")
+        print("Accuracy on the test set: " + str(test_accuracy * 100) + "%")
     else:
         print("No saved model found, creating a new model and training it.This model will be saved for further uses.")
         model = CustomModel()

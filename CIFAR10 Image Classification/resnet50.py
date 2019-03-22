@@ -178,8 +178,8 @@ class CustomModel:
         model.fit(X_train,Y_train,epochs=num_epochs,batch_size=batch_size)
 
         # Evaluate the model
-        _,test_loss = model.evaluate(X_test, Y_test)
-        print("Accuracy on the test set: " + str(test_loss * 100) + "%")
+        _,test_acc = model.evaluate(X_test, Y_test)
+        print("Accuracy on the test set: " + str(test_acc * 100) + "%")
 
         return model
     
