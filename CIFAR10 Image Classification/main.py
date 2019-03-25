@@ -79,7 +79,7 @@ def main():
 
     if isModelPresent:
         print("Saved model has been loaded successfully.")
-        trained_model.compile(optimizer=Adam(lr=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+        trained_model.compile(optimizer=Adam(lr=0.0001, decay=1e-6, epsilon=1e-8), loss='categorical_crossentropy', metrics=['accuracy'])
         trained_model.fit(X_train, y_train, epochs=num_epochs,batch_size=64)
 
         test_loss, test_accuracy = trained_model.evaluate(X_test, y_test)

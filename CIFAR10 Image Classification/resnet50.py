@@ -171,7 +171,7 @@ class CustomModel:
         model = self.Resnet50()
         
         # Compile the model
-        model.compile(optimizer=Adam(lr=lr),loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=Adam(lr=lr, decay=1e-6, epsilon=1e-8),loss='categorical_crossentropy', metrics=['accuracy'])
         
         # Train the model
         model.fit(X_train,Y_train,epochs=num_epochs,batch_size=batch_size)
