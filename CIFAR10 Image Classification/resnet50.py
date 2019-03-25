@@ -1,13 +1,12 @@
 import numpy as np
-import tensorflow as tf
 
-from tensorflow import keras
 from keras.models import Model
 from keras.layers import Dense, AveragePooling2D, MaxPooling2D, Activation,ZeroPadding2D, Flatten, Input, Dropout, Conv2D, BatchNormalization, Add
 from keras.applications.resnet50 import ResNet50
 from keras.preprocessing import image
 from keras.applications.resnet50 import preprocess_input, decode_predictions
 from keras.initializers import glorot_uniform
+from keras.optimizers import Adam
 
 class CustomModel:
     def __init__(self):
@@ -168,11 +167,11 @@ class CustomModel:
         model = Model(inputs = X_input, outputs = X, name='Resnet50')
         return model
 
-    def train_with_custom_resnet50(self, X_train, Y_train, X_test, Y_test, num_epochs, batch_size):
+    def train_with_custom_resnet50(self, X_train, Y_train, X_test, Y_test, num_epochs, batch_size, lr=0.001):
         model = self.Resnet50()
         
         # Compile the model
-        model.compile(optimizer='adam',loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=Adam(lr=lr),loss='categorical_crossentropy', metrics=['accuracy'])
         
         # Train the model
         model.fit(X_train,Y_train,epochs=num_epochs,batch_size=batch_size)

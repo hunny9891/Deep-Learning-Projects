@@ -1,9 +1,9 @@
 
 import numpy as np
-#from tensorflow import keras
 from keras.utils import to_categorical
 from keras.datasets import cifar10
 from keras.models import load_model
+from keras.optimizers import Adam
 
 import scipy
 import pickle
@@ -79,7 +79,7 @@ def main():
 
     if isModelPresent:
         print("Saved model has been loaded successfully.")
-        trained_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        trained_model.compile(optimizer=Adam(lr=0.01), loss='categorical_crossentropy', metrics=['accuracy'])
         trained_model.fit(X_train, y_train, epochs=num_epochs,batch_size=64)
 
         test_loss, test_accuracy = trained_model.evaluate(X_test, y_test)
@@ -87,7 +87,7 @@ def main():
     else:
         print("No saved model found, creating a new model and training it.This model will be saved for further uses.")
         model = CustomModel()
-        trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 64)
+        trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 64, lr=0.03)
 
     # Save the trained model
     trained_model.save(model_path + "/" + model_file)
