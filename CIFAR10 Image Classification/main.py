@@ -87,7 +87,7 @@ def main():
     else:
         print("No saved model found, creating a new model and training it.This model will be saved for further uses.")
         model = CustomModel()
-        trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 64, lr=0.003)
+        trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 64, lr=0.0001)
 
     # Save the trained model
     trained_model.save(model_path + "/" + model_file)
