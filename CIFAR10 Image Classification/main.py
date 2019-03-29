@@ -1,9 +1,11 @@
-
 import numpy as np
+
 from keras.utils import to_categorical
 from keras.datasets import cifar10
 from keras.models import load_model
 from keras.optimizers import Adam
+
+from util import Utility
 
 import scipy
 import pickle
@@ -12,10 +14,6 @@ import os
 from scipy import ndimage
 from resnet50 import CustomModel
 import matplotlib.pyplot as plt
-
-
-# Constants
-ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 def load_data_from_keras():
     (X_train, Y_train), (X_test, Y_test) = cifar10.load_data()
@@ -59,38 +57,11 @@ def main():
 
     print('Shape of training labels: ' + str(y_train.shape))
     print('Shape of test labels: ' + str(y_test.shape))
+    
+    model = CustomModel()
+    trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 64)
 
-    model_path = ROOT_DIR + '/models'
-    model_file = 'custom_resnet50.h5'
-    # Test whether the directory exists
-    if not os.path.isdir(model_path):
-        print("Directory: " + model_path + " not found. Creating directory structure.")
-        os.makedirs(model_path)
-
-    # Try loading the keras model, if not present in the directory specified then train and save from start
-    # else train on loaded model.
-    isModelPresent = False
-    try:
-        trained_model = load_model(model_path + "/" + model_file)
-    except OSError as e:
-        print('Model not found on the specified path.', e)
-    else:
-        isModelPresent = True
-
-    if isModelPresent:
-        print("Saved model has been loaded successfully.")
-        trained_model.compile(optimizer=Adam(lr=0.0001, decay=1e-6, epsilon=1e-8), loss='categorical_crossentropy', metrics=['accuracy'])
-        trained_model.fit(X_train, y_train, epochs=num_epochs,batch_size=64)
-
-        test_loss, test_accuracy = trained_model.evaluate(X_test, y_test)
-        print("Accuracy on the test set: " + str(test_accuracy * 100) + "%")
-    else:
-        print("No saved model found, creating a new model and training it.This model will be saved for further uses.")
-        model = CustomModel()
-        trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 64, lr=0.0001)
-
-    # Save the trained model
-    trained_model.save(model_path + "/" + model_file)
+    print(trained_model.summary())
 
 if __name__ == "__main__":
     main()

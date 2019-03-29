@@ -7,6 +7,9 @@ from keras.preprocessing import image
 from keras.applications.resnet50 import preprocess_input, decode_predictions
 from keras.initializers import glorot_uniform
 from keras.optimizers import Adam
+from keras.callbacks import LearningRateScheduler, ModelCheckpoint, ReduceLROnPlateau
+
+from util import Utility
 
 class CustomModel:
     def __init__(self):
@@ -167,14 +170,22 @@ class CustomModel:
         model = Model(inputs = X_input, outputs = X, name='Resnet50')
         return model
 
-    def train_with_custom_resnet50(self, X_train, Y_train, X_test, Y_test, num_epochs, batch_size, lr=0.001):
+    def train_with_custom_resnet50(self, X_train, Y_train, X_test, Y_test, num_epochs, batch_size):
         model = self.Resnet50()
+        util = Utility()
         
         # Compile the model
-        model.compile(optimizer=Adam(lr=lr, decay=1e-6, epsilon=1e-8),loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=Adam(lr=util.lr_schedule(0), epsilon=1e-8),loss='categorical_crossentropy', metrics=['accuracy'])
+
+        modelCheckpoint = ModelCheckpoint(filepath=util.getModelPath(),monitor='val_acc',verbose=1, save_best_only=True)
+        learningRateScheduler = LearningRateScheduler(util.lr_schedule)
+        lrReducer = ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0.0, patience=5, min_lr=0.5e-6)
+
+        # Prepare callbacks
+        callbacks = [modelCheckpoint, learningRateScheduler, lrReducer]
         
         # Train the model
-        model.fit(X_train,Y_train,epochs=num_epochs,batch_size=batch_size)
+        model.fit(X_train,Y_train,epochs=num_epochs,batch_size=batch_size,validation_data=(X_test, Y_test), shuffle=True, callbacks=callbacks)
 
         # Evaluate the model
         _,test_acc = model.evaluate(X_test, Y_test)
