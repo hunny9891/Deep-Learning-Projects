@@ -180,10 +180,10 @@ class CustomModel:
         modelCheckpoint = ModelCheckpoint(filepath=util.getModelPath(),monitor='val_acc',verbose=1, save_best_only=True)
         learningRateScheduler = LearningRateScheduler(util.lr_schedule)
         lrReducer = ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0.0, patience=5, min_lr=0.5e-6)
-        earlyStop = EarlyStopping(monitor='val_loss', patience=5, min_delta=1e-3,restore_best_weights=True,mode='auto')
+        #earlyStop = EarlyStopping(monitor='val_loss', patience=5, min_delta=1e-3,restore_best_weights=True,mode='auto')
 
         # Prepare callbacks
-        callbacks = [modelCheckpoint, learningRateScheduler, lrReducer, earlyStop]
+        callbacks = [modelCheckpoint, learningRateScheduler, lrReducer]
         
         # Train the model
         model.fit(X_train,Y_train,epochs=num_epochs,batch_size=batch_size,validation_data=(X_test, Y_test), shuffle=True, callbacks=callbacks)
