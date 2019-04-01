@@ -130,7 +130,7 @@ class CustomModel:
         X = ZeroPadding2D((3,3))(X_input)
 
         # Stage 1
-        X = Conv2D(32, (7,7), strides = (2,2), name='conv1', kernel_initializer=glorot_uniform(seed=0))(X)
+        X = Conv2D(16, (7,7), strides = (2,2), name='conv1', kernel_initializer=glorot_uniform(seed=0))(X)
         X = BatchNormalization(axis=3, name='bn_conv1')(X)
         X = Activation('relu')(X)
         X = MaxPooling2D((3,3), strides=(2,2))(X)
