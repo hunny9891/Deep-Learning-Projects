@@ -5,6 +5,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+import util
+
 #%%
 label_dict = {
     0:'airplane',
@@ -20,11 +22,10 @@ label_dict = {
 }
 
 #%%
-model = load_model('C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/CIFAR10 Image Classification/models/custom_resnet50.h5')
-
+model = load_model(os.path.join(util.MODEL_PATH, util.MODEL_NAME))
 
 #%%
-img_dir = 'C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/CIFAR10 Image Classification/images'
+img_dir =util.IMAGES_PATH
 images = []
 for img_path in os.listdir(img_dir):
     img = image.load_img(img_dir + '/' + img_path, target_size=(32,32,3))
