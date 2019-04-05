@@ -59,9 +59,7 @@ def main():
     print('Shape of test labels: ' + str(y_test.shape))
     
     model = CustomModel()
-    trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 64)
-
-    print(trained_model.summary())
+    trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 128)
 
 if __name__ == "__main__":
     main()
