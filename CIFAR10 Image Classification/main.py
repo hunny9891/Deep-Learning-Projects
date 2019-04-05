@@ -72,7 +72,7 @@ def main():
     resnet = CustomModel()
     if(choice == 1):
         model = resnet.resnet18()
-        trained_model = resnet.train(model,X_train, y_train, X_test, y_test, num_epochs, 128, data_augmentation=False)
+        trained_model = resnet.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=False)
     elif(choice == 2):
         model = resnet.Resnet50()
         trained_model = resnet.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=False)
