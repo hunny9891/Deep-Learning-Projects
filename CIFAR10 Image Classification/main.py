@@ -12,7 +12,7 @@ import pickle
 import os
 
 from scipy import ndimage
-from resnet50 import CustomModel
+from resnet import CustomModel
 import matplotlib.pyplot as plt
 
 def load_data_from_keras():
@@ -21,6 +21,12 @@ def load_data_from_keras():
     # Normalize the training and testing data.
     X_train = X_train / 255
     X_test = X_test / 255
+
+    # Subtract pixel mean
+    mean = np.mean(X_train, axis=0)
+    print(mean)
+    X_train -= mean
+    X_test -= mean
 
     return X_train, Y_train, X_test, Y_test
 
@@ -40,6 +46,11 @@ def main():
     
     num_epochs = int(num_epochs)
 
+    print("1 for Resnet18, 2 for Resnet50")
+    choice = input("Choose model: ")
+    choice = int(choice)
+    
+
     #data_path = ROOT_DIR + 'dataset/cifar-100-python'
     #raw_data, meta_data, test_data = load_data(data_path)
     X_train, y_train, X_test, y_test = load_data_from_keras()
@@ -57,9 +68,14 @@ def main():
 
     print('Shape of training labels: ' + str(y_train.shape))
     print('Shape of test labels: ' + str(y_test.shape))
-    
-    model = CustomModel()
-    trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, num_epochs, 64)
+
+    resnet = CustomModel()
+    if(choice == 1):
+        model = resnet.resnet18()
+        trained_model = resnet.train(model,X_train, y_train, X_test, y_test, num_epochs, 128, data_augmentation=False)
+    elif(choice == 2):
+        model = resnet.Resnet50()
+        trained_model = resnet.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=False)
 
 if __name__ == "__main__":
     main()

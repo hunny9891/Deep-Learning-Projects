@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 from keras.models import Model
 from keras.layers import Dense, AveragePooling2D, MaxPooling2D, Activation,ZeroPadding2D, Flatten, Input, Dropout, Conv2D, BatchNormalization, Add
@@ -8,6 +9,7 @@ from keras.applications.resnet50 import preprocess_input, decode_predictions
 from keras.initializers import glorot_uniform
 from keras.optimizers import Adam
 from keras.callbacks import LearningRateScheduler, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
+from keras.preprocessing.image import ImageDataGenerator
 
 from util import Utility
 
@@ -170,8 +172,62 @@ class CustomModel:
         model = Model(inputs = X_input, outputs = X, name='Resnet50')
         return model
 
-    def train_with_custom_resnet50(self, X_train, Y_train, X_test, Y_test, num_epochs, batch_size):
-        model = self.Resnet50()
+    def resnet18(self,input_shape=(32,32,3), classes=10):
+        """
+        Implementation of the popular ResNet50 the following architecture:
+        CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3
+        -> CONVBLOCK -> IDBLOCK*5 -> CONVBLOCK -> IDBLOCK*2 -> AVGPOOL -> TOPLAYER
+
+        Arguments:
+        input_shape -- shape of the images of the dataset
+        classes -- integer, number of classes
+
+        Returns:
+        model -- a Model() instance in Keras
+        """
+        # Define input as a tensor of input shape
+        X_input = Input(input_shape)
+
+        # Zero Padding
+        X = ZeroPadding2D((3,3))(X_input)
+
+        # Stage 1
+        X = Conv2D(64, (7,7), strides = (2,2), name='conv1', kernel_initializer=glorot_uniform(seed=0))(X)
+        X = BatchNormalization(axis=3, name='bn_conv1')(X)
+        X = Activation('relu')(X)
+        X = MaxPooling2D((3,3), strides=(2,2))(X)
+    
+        # Stage 2
+        X = self.convolutional_block(X, f=3, filters=[64,64,64], stage=2, block='a', s=1)
+        X = self.identity_block(X, 3,[64,64,64], stage=2, block='b')
+
+        # Stage 3
+        X = self.convolutional_block(X, f=3, filters=[64,64,128], stage=3, block='a', s=2)
+        X = self.identity_block(X,3,[64,64,128], stage=3, block='b')
+
+        # Stage 4
+        X = self.convolutional_block(X, f=3, filters=[128,128,256], stage=4, block='a', s=2)
+        X = self.identity_block(X,3,[128,128,256], stage=4, block='b')
+
+        # Stage 5
+        X = self.convolutional_block(X, f=3, filters=[256,256,512], stage=5, block='a', s=2)
+        X = self.identity_block(X,3,[256,256,512], stage=5, block='b')
+
+        # AVGPOOL
+        X = AveragePooling2D((1,1))(X)
+
+        # Output Layer
+        X = Flatten()(X)
+        X = Dense(1000, activation='relu', name='fc10000', kernel_initializer=glorot_uniform(seed=0))(X)
+        X = Dense(classes, activation='softmax', name='fc'+str(classes), kernel_initializer=glorot_uniform(seed=0))(X)
+        
+        # Create model
+        model = Model(inputs = X_input, outputs = X, name='Resnet18')
+        return model
+
+
+
+    def train(self, model,X_train, Y_train, X_test, Y_test, num_epochs, batch_size, data_augmentation=False):
         print(model.summary())
         util = Utility()
         
@@ -185,9 +241,66 @@ class CustomModel:
 
         # Prepare callbacks
         callbacks = [modelCheckpoint, learningRateScheduler, lrReducer]
+        if not data_augmentation:
+            print('Not using data augmentation.')
+            # Train the model
+            model.fit(X_train,Y_train,epochs=num_epochs,batch_size=batch_size,validation_data=(X_test, Y_test), shuffle=True, callbacks=callbacks)
+        else:
+            print('Using real-time data augmentation.')
+            # This will do preprocessing and realtime data augmentation:
+            datagen = ImageDataGenerator(
+                # set input mean to 0 over the dataset
+                featurewise_center=False,
+                # set each sample mean to 0
+                samplewise_center=False,
+                # divide inputs by std of dataset
+                featurewise_std_normalization=False,
+                # divide each input by its std
+                samplewise_std_normalization=False,
+                # apply ZCA whitening
+                zca_whitening=False,
+                # epsilon for ZCA whitening
+                zca_epsilon=1e-06,
+                # randomly rotate images in the range (deg 0 to 180)
+                rotation_range=0,
+                # randomly shift images horizontally
+                width_shift_range=0.1,
+                # randomly shift images vertically
+                height_shift_range=0.1,
+                # set range for random shear
+                shear_range=0.,
+                # set range for random zoom
+                zoom_range=0.,
+                # set range for random channel shifts
+                channel_shift_range=0.,
+                # set mode for filling points outside the input boundaries
+                fill_mode='nearest',
+                # value used for fill_mode = "constant"
+                cval=0.,
+                # randomly flip images
+                horizontal_flip=True,
+                # randomly flip images
+                vertical_flip=False,
+                # set rescaling factor (applied before any other transformation)
+                rescale=None,
+                # set function that will be applied on each input
+                preprocessing_function=None,
+                # image data format, either "channels_first" or "channels_last"
+                data_format=None,
+                # fraction of images reserved for validation (strictly between 0 and 1)
+                validation_split=0.0)
+
+            # Compute quantities required for featurewise normalization
+            # (std, mean, and principal components if ZCA whitening is applied).
+            datagen.fit(X_train)
+
+            # Fit the model on the batches generated by datagen.flow().
+            model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size),
+                                validation_data=(X_test, Y_test),
+                                epochs=num_epochs, verbose=1, workers=4,
+                                callbacks=callbacks,
+                                steps_per_epoch=math.ceil(len(X_train)/ batch_size))
         
-        # Train the model
-        model.fit(X_train,Y_train,epochs=num_epochs,batch_size=batch_size,validation_data=(X_test, Y_test), shuffle=True, callbacks=callbacks)
 
         # Evaluate the model
         _,test_acc = model.evaluate(X_test, Y_test)
