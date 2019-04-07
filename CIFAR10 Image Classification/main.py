@@ -1,19 +1,19 @@
+import os
+import pickle
+import matplotlib.pyplot as plt
 import numpy as np
+import scipy
+import resnet18
+import resnet50
+import train
 
-from keras.utils import to_categorical
 from keras.datasets import cifar10
 from keras.models import load_model
 from keras.optimizers import Adam
+from keras.utils import to_categorical
+from scipy import ndimage
 
 from util import Utility
-
-import scipy
-import pickle
-import os
-
-from scipy import ndimage
-from resnet import CustomModel
-import matplotlib.pyplot as plt
 
 def load_data_from_keras():
     (X_train, Y_train), (X_test, Y_test) = cifar10.load_data()
@@ -24,7 +24,6 @@ def load_data_from_keras():
 
     # Subtract pixel mean
     mean = np.mean(X_train, axis=0)
-    print(mean)
     X_train -= mean
     X_test -= mean
 
@@ -69,13 +68,14 @@ def main():
     print('Shape of training labels: ' + str(y_train.shape))
     print('Shape of test labels: ' + str(y_test.shape))
 
-    resnet = CustomModel()
+    model = None
     if(choice == 1):
-        model = resnet.resnet18()
-        trained_model = resnet.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=False)
+        model = resnet18.CustomModel().construct_Resnet18()
     elif(choice == 2):
-        model = resnet.Resnet50()
-        trained_model = resnet.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=False)
+        model = resnet50.CustomModel().construct_Rsnet50()
+    
+    # Train the model
+    train.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=False)
 
 if __name__ == "__main__":
     main()
