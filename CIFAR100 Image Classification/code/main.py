@@ -1,60 +1,54 @@
-
-import numpy as np
-from tensorflow import keras
-from keras.utils import to_categorical
-from keras.datasets import cifar100
-import scipy
+import os
 import pickle
-
-from scipy import ndimage
-from resnet50 import CustomModel
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy
+import resnet18
+import resnet50
+import train
 
-# Constants
-ROOT_DIR = 'C:/Users/himan/Documents/GitHub/Deep-Learning-Projects/CIFAR100 Image Classification/'
+from keras.datasets import cifar100
+from keras.models import load_model
+from keras.optimizers import Adam
+from keras.utils import to_categorical
+from scipy import ndimage
 
-
-def unpickle(file):
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
-    return dict
-
-
-def load_data(data_path):
-    raw_data = unpickle(data_path + '/train')
-    meta_data = unpickle(data_path + '/meta')
-    test_data = unpickle(data_path + '/test')
-    print('Test Data Keys:' + str(test_data.keys()))
-
-    return raw_data, meta_data, test_data
-
-
-def prep_data_for_train(raw_data, test_data):
-    # Prepare data to feed into the network and train.
-    X_train_orig = raw_data[b'data']
-    Y_train = raw_data[b'coarse_labels']
-    X_test_orig = test_data[b'data']
-    Y_test = test_data[b'coarse_labels']
-
-    # Normalize the training and testing data.
-    X_train = X_train_orig / 255
-    X_test = X_test_orig / 255
-
-    print('Normalized training vector sample: ' + str(X_train[1]))
-    print('Normalized testing vector sample: ' + str(X_test[1]))
-
-    return X_train, X_test, Y_train, Y_test
+from util import Utility
 
 def load_data_from_keras():
-    (X_train, Y_train), (X_test, Y_test) = cifar100.load_data(label_mode='coarse')
+    (X_train, Y_train), (X_test, Y_test) = cifar100.load_data(label_mode='fine')
 
     # Normalize the training and testing data.
     X_train = X_train / 255
     X_test = X_test / 255
 
+    # Subtract pixel mean
+    mean = np.mean(X_train, axis=0)
+    X_train -= mean
+    X_test -= mean
+
     return X_train, Y_train, X_test, Y_test
 
 def main():
+
+    # Make user enter the epoch size
+    num_epochs = 1
+    while True:
+        try:
+            num_epochs = input("Please enter number of epochs: ")
+            if int(num_epochs) <= 0:
+                print("Number should be greater than 0.")
+            else:
+                break
+        except ValueError:
+            print("You must enter a valid integer.")
+    
+    num_epochs = int(num_epochs)
+
+    print("1 for Resnet18, 2 for Resnet50")
+    choice = input("Choose model: ")
+    choice = int(choice)
+    
 
     #data_path = ROOT_DIR + 'dataset/cifar-100-python'
     #raw_data, meta_data, test_data = load_data(data_path)
@@ -74,21 +68,14 @@ def main():
     print('Shape of training labels: ' + str(y_train.shape))
     print('Shape of test labels: ' + str(y_test.shape))
 
-    model = CustomModel()
-    trained_model = model.train_with_custom_resnet50(X_train, y_train, X_test, y_test, 90, 64)
-
-    # Save the trained model
-    trained_model.save(ROOT_DIR + 'models/custom_resnet50.h5')
-
-    #my_image = 'mushrooms.jpg'
-
-    #fname = "CIFAR100 Image Classification/data/" + my_image
-    #image = np.array(ndimage.imread(fname, flatten=False)) 
-    #my_image = scipy.misc.imresize(image, size=(32, 32))
-
+    model = None
+    if(choice == 1):
+        model = resnet18.CustomModel().construct_Resnet18(classes=100)
+    elif(choice == 2):
+        model = resnet50.CustomModel().construct_Rsnet50(classes=100)
     
+    # Train the model
+    train.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=True)
 
-    #plt.imshow(image)
-    
 if __name__ == "__main__":
     main()
