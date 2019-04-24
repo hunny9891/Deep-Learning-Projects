@@ -202,10 +202,10 @@ class CustomModel:
         X = self.identity_block(X, 3, [128, 256], stage=4, block='b')
         X = self.identity_block(X, 3, [128, 256], stage=4, block='c')
         # Stage 5
-        X = self.convolutional_block(
-            X, f=3, filters=[256, 512], stage=5, block='a', s=2)
-        X = self.identity_block(X, 3, [256, 512], stage=5, block='b')
-        X = self.identity_block(X, 3, [256, 512], stage=5, block='c')
+        # X = self.convolutional_block(
+        #     X, f=3, filters=[256, 512], stage=5, block='a', s=2)
+        # X = self.identity_block(X, 3, [256, 512], stage=5, block='b')
+        # X = self.identity_block(X, 3, [256, 512], stage=5, block='c')
 
         # AVGPOOL
         X = AveragePooling2D((1, 1))(X)
