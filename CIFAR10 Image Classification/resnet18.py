@@ -186,8 +186,7 @@ class CustomModel:
 
         # Stage 1
         X = Conv2D(64, (7, 7), strides=(2, 2), name='conv1',
-                   kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4), kernel_regularizer=l2(1e-4),
-                   )(X)
+                   kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = BatchNormalization(axis=3, name='bn_conv1')(X)
         X = Activation('relu')(X)
 
