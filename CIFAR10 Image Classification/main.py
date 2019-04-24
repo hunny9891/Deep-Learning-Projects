@@ -45,7 +45,7 @@ def main():
     
     num_epochs = int(num_epochs)
 
-    print("1 for Resnet18, 2 for Resnet50")
+    print("1 for Resnet18, 2 for Resnet50 3 for Resnet18v2")
     choice = input("Choose model: ")
     choice = int(choice)
     
@@ -73,9 +73,11 @@ def main():
         model = resnet18.CustomModel().construct_Resnet18()
     elif(choice == 2):
         model = resnet50.CustomModel().construct_Rsnet50()
+    elif(choice == 3):
+        model = resnet18.CustomModel().construct_resnet18v2()
     
     # Train the model
-    train.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=False)
+    train.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=True)
 
 if __name__ == "__main__":
     main()
