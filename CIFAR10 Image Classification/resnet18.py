@@ -1,14 +1,17 @@
 import numpy as np
-
-from keras.models import Model
-from keras.layers import Dense, AveragePooling2D, MaxPooling2D, Activation, ZeroPadding2D, Flatten, Input, Dropout, Conv2D, BatchNormalization, Add
-from keras.applications.resnet50 import ResNet50
-from keras.preprocessing import image
-from keras.applications.resnet50 import preprocess_input, decode_predictions
+from keras.applications.resnet50 import (ResNet50, decode_predictions,
+                                         preprocess_input)
+from keras.callbacks import (EarlyStopping, LearningRateScheduler,
+                             ModelCheckpoint, ReduceLROnPlateau)
 from keras.initializers import glorot_uniform
+from keras.layers import (Activation, Add, AveragePooling2D,
+                          BatchNormalization, Conv2D, Dense, Dropout, Flatten,
+                          Input, MaxPooling2D, ZeroPadding2D)
+from keras.models import Model
 from keras.optimizers import Adam
-from keras.callbacks import LearningRateScheduler, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
+from keras.preprocessing import image
 from keras.preprocessing.image import ImageDataGenerator
+from keras.regularizers import l2
 
 from util import Utility
 
@@ -43,13 +46,13 @@ class CustomModel:
 
         # First component of the main path
         X = Conv2D(filters=f1, kernel_size=(f, f), strides=(1, 1), padding='same',
-                   name=conv_name_base + '2a', kernel_initializer=glorot_uniform(seed=0))(X)
+                   name=conv_name_base + '2a', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = BatchNormalization(axis=3, name=bn_name_base + '2a')(X)
         X = Activation('relu')(X)
 
         # Second component of the main path
         X = Conv2D(filters=f2, kernel_size=(1, 1), strides=(1, 1), padding='valid',
-                   name=conv_name_base + '2b', kernel_initializer=glorot_uniform(seed=0))(X)
+                   name=conv_name_base + '2b', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = BatchNormalization(axis=3, name=bn_name_base + '2b')(X)
 
         # Add the shortcut value to the main path
@@ -86,18 +89,18 @@ class CustomModel:
 
         # First component of the main path
         X = Conv2D(f1, kernel_size=(f, f), strides=(s, s), name=conv_name_base +
-                   '2a', padding='same', kernel_initializer=glorot_uniform(seed=0))(X)
+                   '2a', padding='same', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = BatchNormalization(axis=3, name=bn_name_base + '2a')(X)
         X = Activation('relu')(X)
 
         # Second component of the main path
         X = Conv2D(f2, kernel_size=(1, 1), strides=(1, 1), name=conv_name_base +
-                   '2b', padding='valid', kernel_initializer=glorot_uniform(seed=0))(X)
+                   '2b', padding='valid', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = BatchNormalization(axis=3, name=bn_name_base + '2b')(X)
 
         # shortcut path
         X_Shortcut = Conv2D(f2, kernel_size=(1, 1), strides=(s, s), name=conv_name_base +
-                            '1', padding='valid', kernel_initializer=glorot_uniform(seed=0))(X_Shortcut)
+                            '1', padding='valid', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X_Shortcut)
         X_Shortcut = BatchNormalization(
             axis=3, name=bn_name_base + '1')(X_Shortcut)
 
@@ -128,7 +131,7 @@ class CustomModel:
 
         # Stage 1
         X = Conv2D(64, (7, 7), strides=(2, 2), name='conv1',
-                   kernel_initializer=glorot_uniform(seed=0))(X)
+                   kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = BatchNormalization(axis=3, name='bn_conv1')(X)
         X = Activation('relu')(X)
         X = MaxPooling2D((3, 3), strides=(2, 2))(X)
@@ -156,9 +159,9 @@ class CustomModel:
         # Output Layer
         X = Flatten()(X)
         X = Dense(1000, activation='relu', name='fc10000',
-                  kernel_initializer=glorot_uniform(seed=0))(X)
+                  kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = Dense(classes, activation='softmax', name='fc' +
-                  str(classes), kernel_initializer=glorot_uniform(seed=0))(X)
+                  str(classes), kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
 
         # Create model
         model = Model(inputs=X_input, outputs=X, name='Resnet18')
@@ -183,7 +186,8 @@ class CustomModel:
 
         # Stage 1
         X = Conv2D(64, (7, 7), strides=(2, 2), name='conv1',
-                   kernel_initializer=glorot_uniform(seed=0))(X)
+                   kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4), kernel_regularizer=l2(1e-4),
+                   )(X)
         X = BatchNormalization(axis=3, name='bn_conv1')(X)
         X = Activation('relu')(X)
 
