@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 from keras.models import Model
 from keras.layers import Dense, AveragePooling2D, MaxPooling2D, Activation,ZeroPadding2D, Flatten, Input, Dropout, Conv2D, BatchNormalization, Add
@@ -20,7 +21,7 @@ def train(model,X_train, Y_train, X_test, Y_test, num_epochs, batch_size, data_a
         model.compile(optimizer=Adam(lr=util.lr_schedule(0), epsilon=1e-8),loss='categorical_crossentropy', metrics=['accuracy'])
         print("Plotting model into png")
         plot_model(model, to_file='model.png')
-        
+
         modelCheckpoint = ModelCheckpoint(filepath=util.getModelPath(),monitor='val_acc',verbose=1, save_best_only=True)
         learningRateScheduler = LearningRateScheduler(util.lr_schedule)
         lrReducer = ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0.0, patience=5, min_lr=0.5e-6)
