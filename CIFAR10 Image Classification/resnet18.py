@@ -51,7 +51,7 @@ class CustomModel:
         X = Activation('relu')(X)
 
         # Second component of the main path
-        X = Conv2D(filters=f2, kernel_size=(1, 1), strides=(1, 1), padding='valid',
+        X = Conv2D(filters=f2, kernel_size=(1, 1), strides=(1, 1), padding='same',
                    name=conv_name_base + '2b', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = BatchNormalization(axis=3, name=bn_name_base + '2b')(X)
 
@@ -95,12 +95,12 @@ class CustomModel:
 
         # Second component of the main path
         X = Conv2D(f2, kernel_size=(1, 1), strides=(1, 1), name=conv_name_base +
-                   '2b', padding='valid', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
+                   '2b', padding='same', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = BatchNormalization(axis=3, name=bn_name_base + '2b')(X)
 
         # shortcut path
         X_Shortcut = Conv2D(f2, kernel_size=(1, 1), strides=(s, s), name=conv_name_base +
-                            '1', padding='valid', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X_Shortcut)
+                            '1', padding='same', kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X_Shortcut)
         X_Shortcut = BatchNormalization(
             axis=3, name=bn_name_base + '1')(X_Shortcut)
 
@@ -185,25 +185,25 @@ class CustomModel:
         X = X_input
 
         # Stage 1
-        X = Conv2D(16, (7, 7), strides=(2, 2), name='conv1',
+        X = Conv2D(64, (7, 7), strides=(2, 2), name='conv1',
                    kernel_initializer=glorot_uniform(seed=0), kernel_regularizer=l2(1e-4))(X)
         X = BatchNormalization(axis=3, name='bn_conv1')(X)
         X = Activation('relu')(X)
 
         # Stage 2
-        X = self.identity_block(X, 3, [16, 16], stage=2, block='b')
-        X = self.identity_block(X, 3, [16, 16], stage=2, block='c')
-        X = self.identity_block(X, 3, [16, 16], stage=2, block='d')
+        X = self.identity_block(X, 3, [64, 64], stage=2, block='b')
+        X = self.identity_block(X, 3, [64, 64], stage=2, block='c')
+        X = self.identity_block(X, 3, [64, 64], stage=2, block='d')
         # Stage 3
         X = self.convolutional_block(
-            X, f=3, filters=[16, 32], stage=3, block='a', s=2)
-        X = self.identity_block(X, 3, [16, 32], stage=3, block='b')
-        X = self.identity_block(X, 3, [16, 32], stage=3, block='c')
+            X, f=3, filters=[64, 128], stage=3, block='a', s=2)
+        X = self.identity_block(X, 3, [64, 128], stage=3, block='b')
+        X = self.identity_block(X, 3, [64, 128], stage=3, block='c')
         # Stage 4
         X = self.convolutional_block(
-            X, f=3, filters=[32, 64], stage=4, block='a', s=2)
-        X = self.identity_block(X, 3, [32, 64], stage=4, block='b')
-        X = self.identity_block(X, 3, [32, 64], stage=4, block='c')
+            X, f=3, filters=[128, 256], stage=4, block='a', s=2)
+        X = self.identity_block(X, 3, [128, 256], stage=4, block='b')
+        X = self.identity_block(X, 3, [128, 256], stage=4, block='c')
         # Stage 5
         # X = self.convolutional_block(
         #     X, f=3, filters=[256, 512], stage=5, block='a', s=2)
