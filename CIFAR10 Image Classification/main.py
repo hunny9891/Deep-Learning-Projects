@@ -76,6 +76,8 @@ def main():
     elif(choice == 3):
         model = resnet18.CustomModel().construct_resnet18v2()
     
+    model.summary()
+    
     # Train the model
     train.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=True)
 
