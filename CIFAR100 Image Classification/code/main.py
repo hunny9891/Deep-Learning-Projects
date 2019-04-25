@@ -75,7 +75,7 @@ def main():
         model = resnet50.CustomModel().construct_Rsnet50(classes=100)
     
     # Train the model
-    train.train(model,X_train, y_train, X_test, y_test, num_epochs, 64, data_augmentation=True)
+    train.train(model,X_train, y_train, X_test, y_test, num_epochs, 32, data_augmentation=True)
 
 if __name__ == "__main__":
     main()
