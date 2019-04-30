@@ -4,7 +4,8 @@ import os
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 MODEL_PATH = os.path.join(ROOT_DIR, 'models')
 IMAGES_PATH = os.path.join(ROOT_DIR, 'images')
-MODEL_NAME = 'custom_resnet50.h5'
+MODEL_NAME = 'custom_resnet.h5'
+CSV_PATH = os.path.join(ROOT_DIR, 'trainLabels.csv')
 
 class Utility:
     def __init__(self, *args, **kwargs):
