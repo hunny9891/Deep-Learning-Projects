@@ -76,6 +76,10 @@ def load_kaggle_data():
     # Train Test split
     X_train, X_test, Y_train, Y_test = train_test_split(X_raw, Y_raw, test_size=0.16, random_state=42)
 
+    # Labels to category
+    Y_train = to_categorical(Y_train)
+    Y_test = to_categorical(Y_test)
+
     return X_train, Y_train, X_test, Y_test
 
 
