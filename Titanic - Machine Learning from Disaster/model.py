@@ -7,8 +7,9 @@ from tensorflow.python.framework import ops
 import math
 
 from tensorflow import keras
-from keras.layers import Input, Dense, Activation
+from keras.layers import Input, Dense, Activation, BatchNormalization, Dropout
 from keras.models import Model
+from keras.optimizers import Adam
 
 class TitanicModel:
     def __init__(self):
@@ -208,22 +209,28 @@ class TitanicModel:
 
     def train_with_keras_model(self, X_train, Y_train, X_test, Y_test, num_epoch, batch_size, lr=0.0001):
         m,n_x = X_train.shape
-
+        print(Y_train.shape)
         X_Input = Input(shape=(n_x,), name='Input')
-        X = Dense(128, name='h1')(X_Input)
+        X = Dense(32, name='h1')(X_Input)
         X = Activation('relu')(X)
-        X = Dense(256, name='h2')(X)
+        X = BatchNormalization()(X)
+        X = Dropout(0.7)(X)
+        X = Dense(64, name='h2')(X)
         X = Activation('relu')(X)
-        X = Dense(512, name='h3')(X)
+        X = BatchNormalization()(X)
+        X = Dropout(0.7)(X)
+        X = Dense(64, name='h3')(X)
         X = Activation('relu')(X)
-        X = Dense(1024, name='h4')(X)
+        X = BatchNormalization()(X)
+        X = Dropout(0.7)(X)
+        X = Dense(10, name='h4')(X)
         X = Activation('relu')(X)
-        X = Dense(2, activation='softmax', name='output')(X)
+        X = Dense(1, activation='sigmoid', name='output')(X)
 
         model = Model(inputs=X_Input, outputs=X)
 
-        model.compile(optimizer='adam',
-            loss='categorical_crossentropy', 
+        model.compile(optimizer=Adam(lr),
+            loss='binary_crossentropy', 
             metrics=['accuracy'])
        
         model.fit(X_train, Y_train, epochs=num_epoch, batch_size=batch_size)

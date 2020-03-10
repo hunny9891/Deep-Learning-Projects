@@ -46,6 +46,9 @@ def load_and_prep_data(data_path, isTrainingSet):
     #X_num['Age'] = X_num['Age'].astype(int)
     X_cat = X_train[cat_feat]
 
+    # Data Augmentation
+    
+
     # Normalize numeric features
     X_num_normalized = (X_num - X_num.mean()) / X_num.std()
     X_num_normalized = X_num_normalized.fillna(X_num_normalized.mean())
